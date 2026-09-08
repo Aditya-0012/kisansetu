@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cream-100 text-charcoal-900 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  :lang(hi), :lang(mr) {
+    @apply font-devanagari;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-brand-700 text-cream-50 hover:bg-brand-800 shadow-sm;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-brand-700 border border-brand-200 hover:bg-brand-50;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-charcoal-700 hover:bg-charcoal-900/5;
+  }
+  .card {
+    @apply rounded-xl bg-white shadow-card border border-charcoal-900/5;
+  }
+  .input {
+    @apply w-full rounded-lg border border-charcoal-900/15 bg-white px-3.5 py-2.5 text-sm text-charcoal-900 placeholder:text-charcoal-600/50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500;
+  }
+  .label {
+    @apply block text-sm font-medium text-charcoal-800 mb-1.5;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+}
+
+/* Custom scrollbar for horizontal timelines/tables — subtle, not intrusive */
+.scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(31,77,54,0.2); border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
