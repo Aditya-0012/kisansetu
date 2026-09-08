@@ -61,9 +61,12 @@ export const otpService = {
         message: `Your KisanSetu verification OTP is ${code}. Valid for 10 minutes. Do not share this OTP with anyone.`,
       }).catch((err) => logger.warn(`Failed to send SMS OTP: ${String(err)}`));
     } else {
-      await emailService.sendOtpEmail(target, code).catch((err) =>
-        logger.warn(`Failed to send Email OTP: ${String(err)}`)
-      );
+      const emailPromise = emailService
+        .sendOtpEmail(target, code)
+        .catch((err) => logger.warn(`Failed to send Email OTP: ${String(err)}`));
+      // Give email up to 5 seconds to complete before returning response so client never buffers
+      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 5000));
+      await Promise.race([emailPromise, timeoutPromise]);
     }
 
     return {

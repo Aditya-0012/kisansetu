@@ -9,13 +9,18 @@ async function getTransporter(): Promise<Transporter> {
 
   if (env.SMTP_SERVICE === "gmail" && env.SMTP_USER && env.SMTP_PASS) {
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: env.SMTP_USER.trim(),
         pass: env.SMTP_PASS.replace(/\s+/g, ""),
       },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
     });
-    logger.info("[Email] Using Gmail SMTP transporter");
+    logger.info("[Email] Using Gmail SMTP transporter (direct SSL port 465)");
   } else if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
     transporter = nodemailer.createTransport({
       host: env.SMTP_HOST,
@@ -25,28 +30,17 @@ async function getTransporter(): Promise<Transporter> {
         user: env.SMTP_USER.trim(),
         pass: env.SMTP_PASS.trim(),
       },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
     });
     logger.info(`[Email] Using SMTP transporter (${env.SMTP_HOST}:${env.SMTP_PORT})`);
   } else {
-    // Development fallback using Ethereal test account so emails are realistically processed and viewable
-    try {
-      const testAccount = await nodemailer.createTestAccount();
-      transporter = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-      logger.info("[Email] Created Ethereal test mailer");
-    } catch {
-      transporter = nodemailer.createTransport({
-        jsonTransport: true,
-      });
-      logger.info("[Email] Using local JSON mail transporter");
-    }
+    // Instant local fallback without blocking on external test APIs
+    transporter = nodemailer.createTransport({
+      jsonTransport: true,
+    });
+    logger.info("[Email] Using local JSON mail transporter (instant fallback)");
   }
 
   return transporter;
