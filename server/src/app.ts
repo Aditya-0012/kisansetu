@@ -14,7 +14,20 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        // Allow all requests from localhost, configured CORS_ORIGIN, and any Vercel domain
+        if (
+          origin === env.CORS_ORIGIN ||
+          origin.includes("localhost") ||
+          origin.endsWith(".vercel.app") ||
+          origin.includes("vercel.app")
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       credentials: true,
     })
   );

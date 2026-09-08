@@ -27,7 +27,16 @@ import type {
   UserRole,
 } from "@kisansetu/shared";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
+function resolveBaseUrl(): string {
+  let url = (import.meta.env.VITE_API_URL ?? "/api").trim();
+  if (url.endsWith("/")) url = url.slice(0, -1);
+  if (url.startsWith("http") && !url.endsWith("/api")) {
+    url = `${url}/api`;
+  }
+  return url;
+}
+
+const BASE_URL = resolveBaseUrl();
 const TOKEN_KEY = "kisansetu.token";
 
 export class ApiRequestError extends Error {
@@ -84,16 +93,22 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  const fullUrl = `${BASE_URL}${path}${buildQuery(options.query)}`;
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}${buildQuery(options.query)}`, {
+    res = await fetch(fullUrl, {
       method: options.method ?? "GET",
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
     });
-  } catch {
-    throw new ApiRequestError(0, "NETWORK_ERROR", "Could not reach the KisanSetu server. Check your connection.");
+  } catch (err) {
+    console.error(`[API Network Error] Failed to fetch ${fullUrl}:`, err);
+    throw new ApiRequestError(
+      0,
+      "NETWORK_ERROR",
+      `Could not reach KisanSetu server at ${BASE_URL}. If your Render service was sleeping, please wait ~30-50s for it to wake up and try again.`
+    );
   }
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
