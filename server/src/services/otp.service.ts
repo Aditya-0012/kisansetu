@@ -53,31 +53,45 @@ export const otpService = {
       (env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN)
     );
     const isConfigured = type === "email" ? isSmtpConfigured : isSmsConfigured;
+    let deliveryFailed = false;
+    let failureReason: string | undefined;
 
     if (type === "phone") {
-      await smsService.send({
-        toPhone: target,
-        event: SmsEvent.TEST,
-        message: `Your KisanSetu verification OTP is ${code}. Valid for 10 minutes. Do not share this OTP with anyone.`,
-      }).catch((err) => logger.warn(`Failed to send SMS OTP: ${String(err)}`));
+      await smsService
+        .send({
+          toPhone: target,
+          event: SmsEvent.TEST,
+          message: `Your KisanSetu verification OTP is ${code}. Valid for 10 minutes. Do not share this OTP with anyone.`,
+        })
+        .catch((err) => {
+          logger.warn(`Failed to send SMS OTP: ${String(err)}`);
+          deliveryFailed = true;
+          failureReason = String(err);
+        });
     } else {
-      const emailPromise = emailService
-        .sendOtpEmail(target, code)
-        .catch((err) => logger.warn(`Failed to send Email OTP: ${String(err)}`));
-      // Give email up to 5 seconds to complete before returning response so client never buffers
-      const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 5000));
-      await Promise.race([emailPromise, timeoutPromise]);
+      const emailResult = await emailService.sendOtpEmail(target, code).catch((err) => {
+        logger.warn(`Failed to send Email OTP: ${String(err)}`);
+        return { success: false, error: String(err) };
+      });
+      if (emailResult && !emailResult.success) {
+        deliveryFailed = true;
+        failureReason = emailResult.error;
+      }
     }
+
+    const actuallyDelivered = isConfigured && !deliveryFailed;
 
     return {
       success: true,
       target,
       type,
-      isConfigured,
-      devCode: !isConfigured ? code : undefined,
-      message: isConfigured
-        ? `A 6-digit verification code was sent to ${target}. Valid for 10 minutes.`
-        : `External ${type === "email" ? "SMTP/Gmail" : "SMS"} provider not configured in server/.env. Verification code provided for local testing.`,
+      isConfigured: actuallyDelivered,
+      devCode: !actuallyDelivered ? code : undefined,
+      message: actuallyDelivered
+        ? `A 6-digit verification code was sent to ${target}. Please check your Inbox as well as Spam/Junk folder.`
+        : deliveryFailed
+        ? `Email provider delivery notice (${failureReason}). For instant access, verification code is provided below.`
+        : `External provider not configured in server/.env. Verification code provided for local testing.`,
     };
   },
 

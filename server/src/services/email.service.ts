@@ -9,18 +9,16 @@ async function getTransporter(): Promise<Transporter> {
 
   if (env.SMTP_SERVICE === "gmail" && env.SMTP_USER && env.SMTP_PASS) {
     transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      service: "gmail",
       auth: {
         user: env.SMTP_USER.trim(),
         pass: env.SMTP_PASS.replace(/\s+/g, ""),
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
-    logger.info("[Email] Using Gmail SMTP transporter (direct SSL port 465)");
+    logger.info("[Email] Using Gmail SMTP transporter (service: gmail)");
   } else if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS) {
     transporter = nodemailer.createTransport({
       host: env.SMTP_HOST,
@@ -30,9 +28,9 @@ async function getTransporter(): Promise<Transporter> {
         user: env.SMTP_USER.trim(),
         pass: env.SMTP_PASS.trim(),
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
     logger.info(`[Email] Using SMTP transporter (${env.SMTP_HOST}:${env.SMTP_PORT})`);
   } else {
@@ -47,7 +45,7 @@ async function getTransporter(): Promise<Transporter> {
 }
 
 export const emailService = {
-  async sendOtpEmail(toEmail: string, code: string): Promise<{ success: boolean; previewUrl?: string }> {
+  async sendOtpEmail(toEmail: string, code: string): Promise<{ success: boolean; error?: string; previewUrl?: string }> {
     try {
       const transport = await getTransporter();
 
@@ -92,13 +90,15 @@ export const emailService = {
 
       return { success: true, previewUrl: previewUrl || undefined };
     } catch (err) {
-      logger.error("[Email] Failed to send OTP email", { error: String(err) });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      logger.error("[Email] Failed to send OTP email", { error: errMsg });
       console.log(`\n======================================================`);
-      console.log(`✉️  [EMAIL OTP (LOCAL)]`);
+      console.log(`✉️  [EMAIL OTP DELIVERY FAILED]`);
       console.log(`   To: ${toEmail}`);
       console.log(`   Code: ${code}`);
+      console.log(`   Error: ${errMsg}`);
       console.log(`======================================================\n`);
-      return { success: true };
+      return { success: false, error: errMsg };
     }
   },
 };
