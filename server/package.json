@@ -12,6 +12,12 @@
   },
   "dependencies": {
     "@kisansetu/shared": "*",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.14.15",
+    "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.11.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
@@ -20,16 +26,8 @@
     "morgan": "^1.10.0",
     "nodemailer": "^10.0.1",
     "pg": "^8.12.0",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/morgan": "^1.9.9",
-    "@types/node": "^20.14.15",
-    "@types/nodemailer": "^8.0.1",
-    "@types/pg": "^8.11.6",
     "tsx": "^4.16.5",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "zod": "^3.23.8"
   }
 }
