@@ -15,6 +15,18 @@
     <div class="card">
       <h1>You're offline</h1>
       <p>KisanSetu needs a connection for live prices, orders, and payments. Your recently viewed pages are still available — reconnect to pick up where you left off.</p>
+      <button onclick="window.location.href='/'" style="margin-top: 16px; padding: 10px 20px; background: #1F4D36; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+        Retry Connection
+      </button>
     </div>
+    <script>
+      // Auto-reconnect if browser is actually online
+      if (navigator.onLine) {
+        window.location.href = '/';
+      }
+      window.addEventListener('online', () => {
+        window.location.href = '/';
+      });
+    </script>
   </body>
 </html>

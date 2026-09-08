@@ -33,7 +33,8 @@ export default defineConfig({
         // live connection (spec: "never pretend critical financial
         // transactions can complete offline").
         globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
-        navigateFallback: "/offline.html",
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
             urlPattern: /\/api\/(listings|prices|forecast)/,
