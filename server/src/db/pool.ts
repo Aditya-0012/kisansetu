@@ -7,8 +7,12 @@ import { env } from "../config/env";
  * connections — this is the one place that knows about `pg`, so swapping
  * drivers later (e.g. a managed Postgres proxy) only touches this file.
  */
+const isLocal =
+  env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("127.0.0.1");
+
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
+  ssl: isLocal ? false : { rejectUnauthorized: false },
   max: 20,
   idleTimeoutMillis: 30_000,
 });
