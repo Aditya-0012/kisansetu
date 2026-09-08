@@ -100,6 +100,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const payload = isJson ? await res.json().catch(() => null) : null;
 
   if (!res.ok) {
+    if (!isJson && (res.status === 404 || res.status === 405)) {
+      throw new ApiRequestError(
+        res.status,
+        "BACKEND_NOT_CONNECTED",
+        `Backend API not connected (HTTP ${res.status}). If running on Vercel, set VITE_API_URL in Vercel project settings to your backend server URL.`
+      );
+    }
     const err = payload?.error ?? { code: "UNKNOWN", message: "Something went wrong." };
     throw new ApiRequestError(res.status, err.code, err.message, err.details);
   }
